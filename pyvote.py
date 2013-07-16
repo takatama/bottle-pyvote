@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 import bottle
 import bottle.ext.sqlite
 from bottle import template, request, redirect
 from beaker.middleware import SessionMiddleware
+import json
 
 app = bottle.app()
 plugin = bottle.ext.sqlite.Plugin(dbfile='votes.db')
@@ -128,12 +130,25 @@ def events_show(id, db):
     user_id, email, password = get_user_info(request, db)
     event = db.execute('select * from events where id=?', id).fetchone()
     if user_id:
-        my_votes = db.execute('select * from teams left outer join votes on teams.id = votes.team_id where teams.event_id=?', [id])
+        my_votes = db.execute('select * from teams left outer join votes on teams.id = votes.team_id where teams.event_id=?', [id]).fetchall()
         return template('events_show', id=event['id'], name=event['name'], description=event['description'], teams=my_votes)
     else:
-        teams = db.execute('select * from teams where event_id=?', id).fetchall()
+        teams = db.execute('select * from teams where event_id=?', [id]).fetchall()
         return template('events_show_no_auth', id=event['id'], name=event['name'], description=event['description'], teams=teams)
     
+@bottle.get('/events/result/<event_id>.json')
+def events_result(event_id, db):
+    teams = db.execute('select * from teams left outer join votes on teams.id = votes.team_id where teams.event_id=?', [event_id]).fetchall()
+    team_json = []
+    for team in teams:
+        if team['name']:
+            score = 0
+            if team['score']:
+                score = team['score']
+            team_json.append('{name: "' + team['name'] + '", score: "' + str(score) + '"}')
+    callback = request.query.get('callback', 'callback') + '(['
+    return callback + ','.join(team_json) + '])'
+
 @bottle.get('/events/update/:id')
 def events_update(id, db):
     user_id, email, password = get_user_info(request, db)
@@ -182,14 +197,14 @@ def vote(event_id, team_id, score, db):
     user_id, email, password = get_user_info(request, db)
     if not user_id:
         redirect('/users/login?to=/events/show/' + event_id)
-    team = db.execute('select * from teams where id=?', team_id).fetchone()
+    team = db.execute('select * from teams where id=?', [team_id]).fetchone()
     if not team:
         return 'Invalid team.'
     event = db.execute('select * from events where id=?', [team['event_id']]).fetchone()
     if not event:
         return 'Invalid event.'
-    user_score = db.execute('select total(score) from votes where user_id=?', [user_id]).fetchone()[0]
-    team_score = db.execute('select total(score) from votes where user_id=? and team_id=?', [user_id, team_id]).fetchone()[0]
+    user_score = db.execute('select total(score) from votes where user_id=? and event_id=?', [user_id, event_id]).fetchone()[0]
+    team_score = db.execute('select total(score) from votes where user_id=? and event_id=? and team_id=?', [user_id, event_id, team_id]).fetchone()[0]
     if user_score - team_score + int(score) > event['user_score']:
         return 'Exceeds total score ' + str(event['user_score'])
     if int(score) > event['team_score']:
@@ -199,7 +214,7 @@ def vote(event_id, team_id, score, db):
     if vote:
         db.execute('update votes set score=? where id=?', [score, vote['id']])
     else:
-        db.execute('insert into votes (user_id, team_id, score) values (?, ?, ?)', [user_id, team_id, score])
+        db.execute('insert into votes (user_id, event_id, team_id, score) values (?, ?, ?, ?)', [user_id, event_id, team_id, score])
     redirect('/events/show/' + event_id)
 
 bottle.run(app=app, host='0.0.0.0', port=8080, debug=True, reloader=True)

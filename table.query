@@ -1,4 +1,4 @@
 CREATE TABLE events(id integer primary key autoincrement, name text, description text, user_score integer, team_score integer);
 CREATE TABLE teams(id integer primary key autoincrement, name text, description text, event_id integer);
 CREATE TABLE users (id integer primary key autoincrement, email text, password text);
-CREATE TABLE votes(id integer primary key autoincrement, user_id integer, team_id integer, score integer);
+CREATE TABLE votes(id integer primary key autoincrement, user_id integer, event_id integer, team_id integer, score integer);

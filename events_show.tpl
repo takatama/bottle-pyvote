@@ -15,6 +15,6 @@
   %end
 %end
 </dl>
-<form method="post" action="/teams/new/{{id}}">
+<form method="get" action="/teams/new/{{id}}">
   <input type="submit" value="add a team" />
 </form>
