@@ -8,3 +8,4 @@
 <form method="post" action="/events/new">
   <input type="submit" value="add an event" />
 </form>
+%rebase layout title='Events'

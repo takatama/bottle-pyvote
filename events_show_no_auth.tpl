@@ -12,3 +12,4 @@
 <form method="post" action="/teams/new/{{id}}">
   <input type="submit" value="add a team" />
 </form>
+%rebase layout title='Event details'
