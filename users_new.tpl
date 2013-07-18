@@ -10,4 +10,9 @@
 %end
   <p><input type="submit"></p>
 </form>
+%if to:
+Login from <a href="/users/login?to={{to}}">here</a> if you already have an account.</a>
+%else:
+Login from <a href="/users/login">here</a> if you already have an account.</a>
+%end
 %rebase layout title='Create an account'

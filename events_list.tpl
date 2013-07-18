@@ -5,7 +5,7 @@
   <dd>{{event[2]}}</dd>
 %end
 </dl>
-<form method="post" action="/events/new">
+<form method="get" action="/events/new">
   <input type="submit" value="add an event" />
 </form>
 %rebase layout title='Events'

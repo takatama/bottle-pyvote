@@ -1,15 +1,15 @@
 <h1>{{name}}</h1>
 <p>{{description}}</p>
-<p>Voting needs <a href="/users/login?to=/events/show/{{id}}">login</a>.</p>
+<div class="alert alert-info">
+投票するには<strong><a href="/users/new?to=/events/show/{{id}}">アカウントを作成</a></strong>するか、<strong><a href="/users/login?to=/events/show/{{id}}">ログイン</a></strong>してください
+</div>
 <dl>
 %for team in teams:
-    <form method="post" action="/users/vote/{{id}}/{{team['id']}}/1">
-      <dt>{{team['name']}}<input type="submit" value="vote" /></dt>
+      <dt>{{team['name']}}</dt>
       <dd>{{team['description']}}</dd>
-    </form>
 %end
 </dl>
-<form method="post" action="/teams/new/{{id}}">
+<form method="get" action="/teams/new/{{id}}">
   <input type="submit" value="add a team" />
 </form>
 %rebase layout title='Event details'
